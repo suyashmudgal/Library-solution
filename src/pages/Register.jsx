@@ -4,7 +4,7 @@ import MembershipForm from '../components/MembershipForm';
 import { submitMembership } from '../services/membershipService';
 import { ShieldCheck, Sparkles, BookOpen } from 'lucide-react';
 
-export default function Register() {
+export default function Register({ isFromQr = false }) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -14,8 +14,7 @@ export default function Register() {
     setErrorMessage('');
 
     try {
-      // Simulate network request latency if needed (300ms) for realistic UX
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 300));
       const created = await submitMembership(formData);
       navigate(`/application-submitted?memberId=${created.memberId}`);
     } catch (err) {
@@ -30,10 +29,16 @@ export default function Register() {
       <div className="max-w-2xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-3 border border-emerald-200/80">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Instant Digital Registration</span>
-          </div>
+          {isFromQr ? (
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-bold mb-3 border border-orange-200 animate-fadeIn">
+              <span>📷 Scanned from Balaji Library Standee • Quick Registration</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-3 border border-emerald-200/80">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Instant Digital Registration</span>
+            </div>
+          )}
 
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Get Your Digital Membership Card

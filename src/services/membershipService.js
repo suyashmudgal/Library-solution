@@ -8,8 +8,8 @@ const GAS_URL_STORAGE_KEY = 'study_room_gas_url';
 const TRACKED_IDS_KEY = 'study_room_tracked_member_ids_v3';
 const EVENT_KEY = 'study_room_membership_updated';
 
-// Known initial IDs present in the user's sheet
-const DEFAULT_INITIAL_IDS = ['MEM00001', 'MEM00002'];
+// No hardcoded demo IDs in production
+const DEFAULT_INITIAL_IDS = [];
 
 export function getGoogleAppsScriptUrl() {
   const custom = localStorage.getItem(GAS_URL_STORAGE_KEY);
@@ -34,14 +34,11 @@ export function isGoogleSheetConnected() {
 function getTrackedMemberIds() {
   try {
     const raw = localStorage.getItem(TRACKED_IDS_KEY);
-    if (!raw) {
-      localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(DEFAULT_INITIAL_IDS));
-      return [...DEFAULT_INITIAL_IDS];
-    }
+    if (!raw) return [];
     const ids = JSON.parse(raw);
-    return Array.isArray(ids) ? ids : [...DEFAULT_INITIAL_IDS];
+    return Array.isArray(ids) ? ids : [];
   } catch (e) {
-    return [...DEFAULT_INITIAL_IDS];
+    return [];
   }
 }
 
@@ -113,15 +110,6 @@ async function callGasGet(params = {}) {
 
 const MEMBER_PROFILE_KEY_PREFIX = 'study_room_profile_';
 
-// Standard demo profiles with Father's Name pre-seeded
-const PRESEEDED_PROFILES = {
-  MEM00001: { fatherName: 'Ramesh Chandra Sharma' },
-  MEM00002: { fatherName: 'Mahesh Kumar Verma' },
-  MEM00003: { fatherName: 'Rajesh Sharma' },
-  MEM00004: { fatherName: 'Rajesh Sharma' },
-  MEM00005: { fatherName: 'Rajesh Sharma' },
-};
-
 function saveLocalMemberProfile(member) {
   if (!member || !member.memberId) return;
   const cleanId = String(member.memberId).trim().toUpperCase();
@@ -147,7 +135,7 @@ function getLocalMemberProfile(memberId) {
       if (parsed && typeof parsed === 'object') return parsed;
     }
   } catch (e) {}
-  return PRESEEDED_PROFILES[cleanId] || null;
+  return null;
 }
 
 // Normalize member object from Google Apps Script response
@@ -376,8 +364,8 @@ export async function rejectMembership(memberId) {
 export async function getAllMemberships() {
   const tracked = getTrackedMemberIds();
 
-  // Find max numeric index (e.g. from MEM00001, MEM00002 -> 2)
-  let maxIndex = 2;
+  // Dynamic probe from 1 upwards to fetch real members from Google Sheet
+  let maxIndex = 1;
   tracked.forEach((id) => {
     const match = id.match(/MEM(\d+)/i);
     if (match) {
@@ -386,9 +374,10 @@ export async function getAllMemberships() {
     }
   });
 
-  // Probe lookahead buffer (check up to maxIndex + 3 to discover newly submitted IDs from other tabs/browsers)
+  // Probe lookahead buffer (probes at least MEM00001-MEM00010 to discover all live sheet records)
   const probeIds = [];
-  for (let i = 1; i <= maxIndex + 3; i++) {
+  const limit = Math.max(maxIndex + 4, 10);
+  for (let i = 1; i <= limit; i++) {
     const padId = `MEM${String(i).padStart(5, '0')}`;
     probeIds.push(padId);
   }

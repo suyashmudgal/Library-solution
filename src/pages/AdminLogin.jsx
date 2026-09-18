@@ -2,12 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { Shield, Lock, User, ArrowLeft, KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
-
-const DEMO_CREDENTIALS = {
-  username: 'admin',
-  password: 'adminpassword123',
-};
+import { Shield, Lock, User, ArrowLeft, AlertCircle } from 'lucide-react';
+import { loginAdmin, isAdminAuthenticated } from '../services/authService';
 
 export default function AdminLogin({ onLoginSuccess }) {
   const navigate = useNavigate();
@@ -19,32 +15,28 @@ export default function AdminLogin({ onLoginSuccess }) {
 
   const from = location.state?.from?.pathname || '/admin';
 
+  // If already authenticated, redirect straight to admin
+  React.useEffect(() => {
+    if (isAdminAuthenticated()) {
+      navigate('/admin', { replace: true });
+    }
+  }, [navigate]);
+
   const handleLogin = (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     setTimeout(() => {
-      // Mock validation - structured for replacement with real auth token/API
-      if (
-        (username.trim().toLowerCase() === DEMO_CREDENTIALS.username &&
-          password === DEMO_CREDENTIALS.password) ||
-        (username.trim() && password.length >= 4)
-      ) {
-        localStorage.setItem('study_room_admin_auth', 'true');
+      const success = loginAdmin(username, password);
+      if (success) {
         if (onLoginSuccess) onLoginSuccess();
         navigate(from, { replace: true });
       } else {
-        setError('Invalid administrator credentials. Please check username and password.');
+        setError('Invalid administrator credentials. Please check your username and password.');
         setIsLoading(false);
       }
-    }, 400);
-  };
-
-  const handleDemoFill = () => {
-    setUsername(DEMO_CREDENTIALS.username);
-    setPassword(DEMO_CREDENTIALS.password);
-    setError('');
+    }, 300);
   };
 
   return (
@@ -72,7 +64,7 @@ export default function AdminLogin({ onLoginSuccess }) {
               Study Room Admin Portal
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Sign in to verify payments and manage memberships
+              Sign in to verify payments and approve memberships
             </p>
           </div>
 
@@ -88,7 +80,7 @@ export default function AdminLogin({ onLoginSuccess }) {
               label="Admin Username"
               name="username"
               type="text"
-              placeholder="e.g. admin"
+              placeholder="Enter admin username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               icon={User}
@@ -100,7 +92,7 @@ export default function AdminLogin({ onLoginSuccess }) {
               label="Password"
               name="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               icon={Lock}
@@ -118,26 +110,11 @@ export default function AdminLogin({ onLoginSuccess }) {
               Sign In to Admin
             </Button>
           </form>
-
-          {/* Quick Demo Access Helper */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-[11px] text-slate-500 mb-2">
-              Demonstration prototype credentials:
-            </p>
-            <button
-              type="button"
-              onClick={handleDemoFill}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Click to auto-fill demo credentials</span>
-            </button>
-          </div>
         </div>
 
         {/* Security Notice */}
         <p className="text-center text-[11px] text-slate-400 mt-6">
-          Authorized personnel only. All verification actions are logged with timestamp.
+          Authorized library personnel only. Configurable via environment variables.
         </p>
       </div>
     </div>

@@ -36,7 +36,9 @@ import {
   Sparkles,
   Database,
   Link2,
+  QrCode,
 } from 'lucide-react';
+import { logoutAdmin } from '../services/authService';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -125,17 +127,8 @@ export default function Admin() {
     }
   };
 
-  const handleResetData = () => {
-    if (window.confirm('Reset all members back to initial sample test records?')) {
-      const reset = resetMockData();
-      setMembers(reset);
-      setSelectedMember(null);
-      showToast('Demo records reset successfully!');
-    }
-  };
-
   const handleLogout = () => {
-    localStorage.removeItem('study_room_admin_auth');
+    logoutAdmin();
     navigate('/admin/login');
   };
 
@@ -225,6 +218,17 @@ export default function Admin() {
           >
             Google Sheet: Live
           </Button>
+
+          <Link to="/admin/qr">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={QrCode}
+              title="Open and print student registration QR poster standee"
+            >
+              Print QR Standee
+            </Button>
+          </Link>
 
           <Button
             variant="ghost"

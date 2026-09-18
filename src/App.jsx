@@ -6,11 +6,14 @@ import Footer from './components/Footer';
 // Pages
 import Home from './pages/Home';
 import Register from './pages/Register';
+import Join from './pages/Join';
 import ApplicationSubmitted from './pages/ApplicationSubmitted';
 import Status from './pages/Status';
 import Card from './pages/Card';
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
+import AdminQrPoster from './pages/AdminQrPoster';
+import AdminAuthGuard from './components/AdminAuthGuard';
 
 export default function App() {
   return (
@@ -21,10 +24,28 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
+            {/* Direct QR scan entry route */}
+            <Route path="/join" element={<Join />} />
             <Route path="/application-submitted" element={<ApplicationSubmitted />} />
             <Route path="/status" element={<Status />} />
             <Route path="/card/:memberId" element={<Card />} />
-            <Route path="/admin" element={<Admin />} />
+            {/* Protected Admin routes */}
+            <Route
+              path="/admin"
+              element={
+                <AdminAuthGuard>
+                  <Admin />
+                </AdminAuthGuard>
+              }
+            />
+            <Route
+              path="/admin/qr"
+              element={
+                <AdminAuthGuard>
+                  <AdminQrPoster />
+                </AdminAuthGuard>
+              }
+            />
             <Route path="/admin/login" element={<AdminLogin />} />
             {/* Catch-all fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
