@@ -31,7 +31,7 @@ export default function Register({ isFromQr = false }) {
         <div className="text-center mb-8">
           {isFromQr ? (
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-50 text-orange-800 text-xs font-bold mb-3 border border-orange-200 animate-fadeIn">
-              <span>📷 Scanned from Balaji Library Standee • Quick Registration</span>
+              <span>📷 Scanned from CardMaker Standee • Quick Registration</span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-3 border border-emerald-200/80">
@@ -62,7 +62,7 @@ export default function Register({ isFromQr = false }) {
         {/* Reassurance Notice */}
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Official Balaji Library Membership Portal • Verified by Desk Administrator</span>
+          <span>Official CardMaker Membership Portal • Verified by Desk Administrator</span>
         </div>
       </div>
     </div>

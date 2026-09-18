@@ -44,9 +44,15 @@ function doGet(e) {
     const action = String(params.action || 'ping').toLowerCase();
 
     if (action === 'ping') {
+      let sheetUrl = '';
+      try {
+        sheetUrl = SpreadsheetApp.getActiveSpreadsheet().getUrl();
+      } catch (err) {}
+
       return jsonResponse({
         success: true,
         message: 'Membership API is running',
+        sheetUrl: sheetUrl,
         columns: [
           'Member ID', 'Name', "Father's Name", 'Mobile Number', 'Seat Number',
           'Membership Plan', 'Fee Paid', 'Payment Date', 'Joining Date', 'Valid Till',

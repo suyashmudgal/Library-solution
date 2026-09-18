@@ -42,6 +42,22 @@ export function isGoogleSheetConnected() {
   return true;
 }
 
+const GOOGLE_SHEET_URL_STORAGE_KEY = 'cardmaker_google_sheet_url';
+
+export function getGoogleSheetUrl() {
+  const custom = localStorage.getItem(GOOGLE_SHEET_URL_STORAGE_KEY);
+  if (custom && custom.trim()) return custom.trim();
+  return (import.meta.env.VITE_GOOGLE_SHEET_URL || '').trim();
+}
+
+export function setGoogleSheetUrl(url) {
+  if (!url || !url.trim()) {
+    localStorage.removeItem(GOOGLE_SHEET_URL_STORAGE_KEY);
+  } else {
+    localStorage.setItem(GOOGLE_SHEET_URL_STORAGE_KEY, url.trim());
+  }
+}
+
 // Track member IDs discovered or submitted
 export function getTrackedMemberIds() {
   try {
@@ -527,6 +543,9 @@ export async function testGoogleAppsScriptConnection(url) {
   const target = (url || getGoogleAppsScriptUrl()).trim();
   const res = await fetch(target, { method: 'GET' });
   const data = await res.json();
+  if (data && data.sheetUrl) {
+    setGoogleSheetUrl(data.sheetUrl);
+  }
   return data;
 }
 

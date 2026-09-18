@@ -14,7 +14,7 @@ export function generateMemberId() {
 /**
  * Generates and downloads a real PDF of the membership card
  * Using jsPDF with an in-memory high-res render of the DOM element
- * Output: Balaji-Library-Membership-[MEMBER_ID].pdf
+ * Output: CardMaker-Membership-[MEMBER_ID].pdf
  * 
  * @param {HTMLElement} element - The DOM element containing the card
  * @param {string} memberId - Real member ID
@@ -57,9 +57,9 @@ export async function downloadCardAsPdf(element, memberId = 'MEMBER') {
     // 5. Place in-memory image onto PDF page
     pdf.addImage(dataUrl, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
 
-    // 6. Format exact expected filename: Balaji-Library-Membership-[MEMBER_ID].pdf
+    // 6. Format exact expected filename: CardMaker-Membership-[MEMBER_ID].pdf
     const cleanId = String(memberId || 'MEMBER').replace(/[^a-zA-Z0-9-_]/g, '');
-    const fileName = `Balaji-Library-Membership-${cleanId}.pdf`;
+    const fileName = `CardMaker-Membership-${cleanId}.pdf`;
 
     // 7. Explicit PDF Blob download mechanism to guarantee correct extension and no UUID names
     const pdfBlob = pdf.output('blob');

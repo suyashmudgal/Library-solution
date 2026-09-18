@@ -4,7 +4,7 @@ import Register from './Register';
 
 /**
  * /join route
- * Entry point when a student scans the physical QR Code standee at Balaji Library.
+ * Entry point when a student scans the physical QR Code standee.
  * Leads directly to the student registration flow without requiring manual URL typing.
  */
 export default function Join() {

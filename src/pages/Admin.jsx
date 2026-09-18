@@ -37,6 +37,8 @@ import {
   subscribeToMembershipUpdates,
   getGoogleAppsScriptUrl,
   setGoogleAppsScriptUrl,
+  getGoogleSheetUrl,
+  setGoogleSheetUrl,
   testGoogleAppsScriptConnection,
   isGoogleSheetConnected,
 } from '../services/membershipService';
@@ -53,8 +55,21 @@ export default function Admin() {
   const [toastMessage, setToastMessage] = useState(null);
   const [isGasModalOpen, setIsGasModalOpen] = useState(false);
   const [gasUrlInput, setGasUrlInput] = useState(getGoogleAppsScriptUrl());
+  const [sheetUrlInput, setSheetUrlInput] = useState(getGoogleSheetUrl());
   const [isTestingGas, setIsTestingGas] = useState(false);
   const [gasTestStatus, setGasTestStatus] = useState(null);
+
+  const handleOpenGoogleSheet = () => {
+    const url = getGoogleSheetUrl();
+    if (url && url.trim()) {
+      window.open(url.trim(), '_blank', 'noopener,noreferrer');
+    } else {
+      setGasUrlInput(getGoogleAppsScriptUrl());
+      setSheetUrlInput(getGoogleSheetUrl());
+      setIsGasModalOpen(true);
+      showToast('Please configure your Google Sheet URL below.', 'info');
+    }
+  };
 
   // Authentication check
   useEffect(() => {
@@ -210,11 +225,21 @@ export default function Admin() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
-            बालाजी लाइब्रेरी — Admin Portal
+            CardMaker — Admin Portal
           </h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenGoogleSheet}
+            className="font-bold border-emerald-600 text-emerald-800 hover:bg-emerald-50 shadow-2xs"
+            title="Open the live Google Sheet in a new tab"
+          >
+            📊 Open Google Sheet
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -234,6 +259,7 @@ export default function Admin() {
             size="sm"
             onClick={() => {
               setGasUrlInput(getGoogleAppsScriptUrl());
+              setSheetUrlInput(getGoogleSheetUrl());
               setGasTestStatus(null);
               setIsGasModalOpen(true);
             }}
@@ -688,6 +714,9 @@ export default function Admin() {
                   setGasTestStatus(null);
                   try {
                     const res = await testGoogleAppsScriptConnection(gasUrlInput);
+                    if (res && res.sheetUrl && !sheetUrlInput.trim()) {
+                      setSheetUrlInput(res.sheetUrl);
+                    }
                     setGasTestStatus({ success: true, message: 'Connected successfully to Google Apps Script!' });
                   } catch (e) {
                     setGasTestStatus({ success: false, message: e.message || 'Failed to connect.' });
@@ -718,6 +747,18 @@ export default function Admin() {
               )}
             </div>
 
+            <div className="pt-2">
+              <Input
+                label="Google Sheet URL (Spreadsheet)"
+                name="sheetUrl"
+                placeholder="https://docs.google.com/spreadsheets/d/.../edit"
+                value={sheetUrlInput}
+                onChange={(e) => setSheetUrlInput(e.target.value)}
+                icon={Database}
+                helperText="URL opened when clicking '📊 Open Google Sheet' in the Admin panel"
+              />
+            </div>
+
             {gasTestStatus && (
               <div
                 className={`p-3 rounded-xl border text-xs font-medium flex items-center gap-2 animate-fadeIn ${
@@ -742,6 +783,7 @@ export default function Admin() {
               size="md"
               onClick={async () => {
                 setGoogleAppsScriptUrl(gasUrlInput);
+                setGoogleSheetUrl(sheetUrlInput);
                 await loadMembers();
                 setIsGasModalOpen(false);
                 showToast(

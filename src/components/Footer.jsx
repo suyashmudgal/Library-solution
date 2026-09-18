@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
             <div className="flex items-center gap-2 text-slate-900 font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>बालाजी लाइब्रेरी (Balaji Library)</span>
+              <span>CardMaker</span>
             </div>
             <span className="hidden sm:inline text-slate-300">|</span>
             <div className="flex items-center gap-1.5 text-slate-500">
@@ -40,7 +40,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} बालाजी लाइब्रेरी (Balaji Library). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} CardMaker • Digital Membership Card System. All rights reserved.</p>
           <p className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-500" />
             <span>Fast, official digital membership system</span>

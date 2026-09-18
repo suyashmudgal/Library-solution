@@ -228,7 +228,7 @@ export default function Status() {
 
         {/* Quick Help Footer */}
         <div className="mt-8 text-center text-xs text-slate-400">
-          Need help locating your card? Visit Balaji Library reception desk or call +91 9806248236 / 9630852930.
+          Need help locating your card? Visit the study room reception desk or call +91 9806248236 / 9630852930.
         </div>
       </div>
     </div>

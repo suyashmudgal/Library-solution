@@ -69,7 +69,7 @@ export default function ApplicationSubmitted() {
         setError(`Application with Request ID ${memberId} could not be found.`);
       }
     } catch (err) {
-      console.error('Error fetching application status:', err);
+      console.warn('Temporary connection issue fetching status (will retry):', err);
     } finally {
       setLoading(false);
     }
@@ -78,6 +78,7 @@ export default function ApplicationSubmitted() {
   const isApproved = Boolean(
     member && (member.status === 'APPROVED' || member.cardStatus === 'READY' || member.cardStatus === 'ACTIVE')
   );
+  const isRejected = Boolean(member && member.status === 'REJECTED');
 
   useEffect(() => {
     fetchStatus();
@@ -87,21 +88,21 @@ export default function ApplicationSubmitted() {
       fetchStatus();
     });
 
-    // If approval is detected, stop polling immediately
-    if (isApproved) {
+    // If approval or rejection is detected, stop polling immediately
+    if (isApproved || isRejected) {
       return () => {
         unsubscribe();
       };
     }
 
-    // 2. Visibility-aware polling: 12 seconds when active tab, paused when hidden
-    const POLLING_INTERVAL_MS = 12000;
+    // 2. Fast, lightweight polling: 6 seconds (within 5-10s requirement) when active tab, paused when hidden
+    const POLLING_INTERVAL_MS = 6000;
     let timerId = null;
 
     const startPolling = () => {
       if (timerId) clearInterval(timerId);
       timerId = setInterval(() => {
-        if (document.visibilityState === 'visible') {
+        if (document.visibilityState === 'visible' && navigator.onLine !== false) {
           fetchStatus();
         }
       }, POLLING_INTERVAL_MS);
@@ -116,15 +117,22 @@ export default function ApplicationSubmitted() {
       }
     };
 
+    const handleOnline = () => {
+      fetchStatus();
+      startPolling();
+    };
+
     startPolling();
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
 
     return () => {
       unsubscribe();
       if (timerId) clearInterval(timerId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
     };
-  }, [memberId, hasCelebrated, isApproved]);
+  }, [memberId, hasCelebrated, isApproved, isRejected]);
 
   const handleDownload = async () => {
     if (!cardRef.current || !member) return;
@@ -190,7 +198,7 @@ export default function ApplicationSubmitted() {
 
   const isApprovedState = member.status === 'APPROVED' || member.cardStatus === 'READY' || member.cardStatus === 'ACTIVE';
   const isPending = member.status === 'PENDING' && !isApprovedState;
-  const isRejected = member.status === 'REJECTED' && !isApprovedState;
+  const isRejectedState = member.status === 'REJECTED' && !isApprovedState;
 
   return (
     <div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
@@ -208,7 +216,7 @@ export default function ApplicationSubmitted() {
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Waiting for Approval
+              Waiting for Admin Approval
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-500 mb-6 max-w-sm mx-auto leading-relaxed">
@@ -287,7 +295,7 @@ export default function ApplicationSubmitted() {
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Membership Approved!
+              🎉 Membership Approved
             </h1>
 
             <p className="text-base font-bold text-emerald-700 mb-6">
@@ -304,22 +312,22 @@ export default function ApplicationSubmitted() {
               <Button
                 variant="primary"
                 size="lg"
-                onClick={() => window.print()}
-                icon={Printer}
-                className="flex-1 shadow-md hover:shadow-lg font-bold text-base py-3"
-              >
-                PRINT CARD
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
                 onClick={handleDownload}
                 isLoading={isDownloading}
                 loadingText="Generating PDF..."
                 icon={Download}
+                className="flex-1 shadow-md hover:shadow-lg font-bold text-base py-3 bg-emerald-600 hover:bg-emerald-700"
+              >
+                Download Your Card
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => window.print()}
+                icon={Printer}
                 className="flex-1 font-bold border-2 border-slate-300 hover:border-slate-400 py-3"
               >
-                DOWNLOAD PDF
+                Print Card
               </Button>
               <Link to={`/card/${member.memberId}`} className="flex-1">
                 <Button
@@ -358,7 +366,7 @@ export default function ApplicationSubmitted() {
         )}
 
         {/* ================= REJECTED STATE ================= */}
-        {isRejected && (
+        {isRejectedState && (
           <div className="bg-white rounded-3xl p-6 sm:p-9 border border-rose-200 shadow-sm animate-fadeIn">
             <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto mb-5 shadow-2xs">
               <XCircle className="w-8 h-8 text-rose-600" />
@@ -389,7 +397,7 @@ export default function ApplicationSubmitted() {
                   Submit New Request
                 </Button>
               </Link>
-              <a href="tel:+919826012345" className="flex-1">
+              <a href="tel:+919806248236" className="flex-1">
                 <Button variant="outline" size="md" className="w-full">
                   Call Administrator
                 </Button>
