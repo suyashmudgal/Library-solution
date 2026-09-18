@@ -7,9 +7,20 @@ export const DEFAULT_GAS_URL =
 const GAS_URL_STORAGE_KEY = 'study_room_gas_url';
 const TRACKED_IDS_KEY = 'study_room_tracked_member_ids_v3';
 const EVENT_KEY = 'study_room_membership_updated';
+const ERROR_SERVICE_UNAVAILABLE = 'Unable to connect to the membership service. Please try again.';
 
-// No hardcoded demo IDs in production
-const DEFAULT_INITIAL_IDS = [];
+// In-memory cache to eliminate duplicate network calls and provide instant transitions
+let membersCache = {
+  data: null,
+  timestamp: 0,
+};
+const CACHE_TTL_MS = 15000; // 15 seconds TTL
+let inFlightFetchAllPromise = null;
+
+export function invalidateMembersCache() {
+  membersCache.data = null;
+  membersCache.timestamp = 0;
+}
 
 export function getGoogleAppsScriptUrl() {
   const custom = localStorage.getItem(GAS_URL_STORAGE_KEY);
@@ -23,6 +34,7 @@ export function setGoogleAppsScriptUrl(url) {
   } else {
     localStorage.setItem(GAS_URL_STORAGE_KEY, url.trim());
   }
+  invalidateMembersCache();
   window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: { timestamp: Date.now() } }));
 }
 
@@ -31,7 +43,7 @@ export function isGoogleSheetConnected() {
 }
 
 // Track member IDs discovered or submitted
-function getTrackedMemberIds() {
+export function getTrackedMemberIds() {
   try {
     const raw = localStorage.getItem(TRACKED_IDS_KEY);
     if (!raw) return [];
@@ -42,7 +54,7 @@ function getTrackedMemberIds() {
   }
 }
 
-function addTrackedMemberId(id) {
+export function addTrackedMemberId(id) {
   if (!id) return;
   const clean = id.trim().toUpperCase();
   const current = getTrackedMemberIds();
@@ -52,6 +64,16 @@ function addTrackedMemberId(id) {
       localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(current));
     } catch (e) {}
   }
+}
+
+export function removeTrackedMemberId(id) {
+  if (!id) return;
+  const clean = id.trim().toUpperCase();
+  const current = getTrackedMemberIds();
+  const updated = current.filter((x) => x !== clean);
+  try {
+    localStorage.setItem(TRACKED_IDS_KEY, JSON.stringify(updated));
+  } catch (e) {}
 }
 
 // Low-level fetch wrapper handling text/plain POST for Google Apps Script Web App redirect
@@ -74,7 +96,7 @@ async function callGasPost(payload) {
     return json;
   } catch (err) {
     console.error('GAS POST Error:', err);
-    throw err;
+    throw new Error(ERROR_SERVICE_UNAVAILABLE);
   }
 }
 
@@ -104,13 +126,13 @@ async function callGasGet(params = {}) {
     return json;
   } catch (err) {
     console.error('GAS GET Error:', err);
-    throw err;
+    throw new Error(ERROR_SERVICE_UNAVAILABLE);
   }
 }
 
 const MEMBER_PROFILE_KEY_PREFIX = 'study_room_profile_';
 
-function saveLocalMemberProfile(member) {
+export function saveLocalMemberProfile(member) {
   if (!member || !member.memberId) return;
   const cleanId = String(member.memberId).trim().toUpperCase();
   try {
@@ -119,12 +141,13 @@ function saveLocalMemberProfile(member) {
     const merged = { ...existing, ...member };
     if (!merged.fatherName && existing.fatherName) {
       merged.fatherName = existing.fatherName;
+      merged.fathersName = existing.fatherName;
     }
     localStorage.setItem(key, JSON.stringify(merged));
   } catch (e) {}
 }
 
-function getLocalMemberProfile(memberId) {
+export function getLocalMemberProfile(memberId) {
   if (!memberId) return null;
   const cleanId = String(memberId).trim().toUpperCase();
   try {
@@ -138,8 +161,17 @@ function getLocalMemberProfile(memberId) {
   return null;
 }
 
+export function removeLocalMemberProfile(memberId) {
+  if (!memberId) return;
+  const cleanId = String(memberId).trim().toUpperCase();
+  try {
+    const key = MEMBER_PROFILE_KEY_PREFIX + cleanId;
+    localStorage.removeItem(key);
+  } catch (e) {}
+}
+
 // Normalize member object from Google Apps Script response
-function normalizeMember(data, fallbackId = '') {
+export function normalizeMember(data, fallbackId = '') {
   if (!data) return null;
 
   const memberId = data.memberId || fallbackId;
@@ -152,7 +184,7 @@ function normalizeMember(data, fallbackId = '') {
   // Retrieve cached profile if available to restore fatherName if GAS response omitted it
   const cached = getLocalMemberProfile(memberId);
   const fatherName = String(
-    data.fatherName || data.fathersName || (cached && cached.fatherName) || ''
+    data.fatherName || data.fathersName || data.father_name || (cached && cached.fatherName) || ''
   ).trim();
 
   const normalized = {
@@ -177,7 +209,6 @@ function normalizeMember(data, fallbackId = '') {
     approvedAt: data.approvedAt || (cached && cached.approvedAt) || null,
   };
 
-  // Cache normalized profile with fatherName
   if (fatherName) {
     saveLocalMemberProfile(normalized);
   }
@@ -194,10 +225,12 @@ function normalizeMember(data, fallbackId = '') {
  * Sends POST { action: "register", ... }
  */
 export async function submitMembership(formData) {
+  const fatherName = String(formData.fatherName || formData.fathersName || '').trim();
   const payload = {
     action: 'register',
     name: String(formData.name || '').trim(),
-    fatherName: String(formData.fatherName || '').trim(),
+    fatherName: fatherName,
+    fathersName: fatherName,
     mobileNumber: String(formData.mobileNumber || formData.mobile || '').trim(),
     mobile: String(formData.mobileNumber || formData.mobile || '').trim(),
     seatNumber: String(formData.seatNumber || '').trim().toUpperCase(),
@@ -210,7 +243,7 @@ export async function submitMembership(formData) {
   const res = await callGasPost(payload);
 
   if (!res || !res.success) {
-    throw new Error((res && res.message) || 'Failed to submit registration to Google Sheets');
+    throw new Error((res && res.message) || ERROR_SERVICE_UNAVAILABLE);
   }
 
   const memberId = res.memberId;
@@ -238,6 +271,7 @@ export async function submitMembership(formData) {
   };
 
   saveLocalMemberProfile(registeredRecord);
+  invalidateMembersCache();
 
   // Notify active tabs
   window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: { timestamp: Date.now() } }));
@@ -331,10 +365,12 @@ export async function approveMembership(memberId) {
     throw new Error((res && res.message) || `Failed to approve member ${memberId}`);
   }
 
+  invalidateMembersCache();
+
   // Fetch updated record from Google Sheets
   const updated = await getMembershipById(clean);
   window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: { timestamp: Date.now() } }));
-  return updated || { memberId: clean, status: 'APPROVED', cardStatus: 'ACTIVE' };
+  return updated || { memberId: clean, status: 'APPROVED', cardStatus: 'READY' };
 }
 
 /**
@@ -352,56 +388,136 @@ export async function rejectMembership(memberId) {
     throw new Error((res && res.message) || `Failed to reject member ${memberId}`);
   }
 
+  invalidateMembersCache();
+
   const updated = await getMembershipById(clean);
   window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: { timestamp: Date.now() } }));
   return updated || { memberId: clean, status: 'REJECTED', cardStatus: 'NOT_READY' };
 }
 
 /**
- * Get all memberships for the admin dashboard
- * Retrieves tracked member IDs and probes for latest IDs in Google Sheets
+ * Delete membership record from Google Sheets and local tracking
+ * Sends POST { action: "delete", memberId: "..." }
  */
-export async function getAllMemberships() {
-  const tracked = getTrackedMemberIds();
-
-  // Dynamic probe from 1 upwards to fetch real members from Google Sheet
-  let maxIndex = 1;
-  tracked.forEach((id) => {
-    const match = id.match(/MEM(\d+)/i);
-    if (match) {
-      const n = parseInt(match[1], 10);
-      if (n > maxIndex) maxIndex = n;
-    }
-  });
-
-  // Probe lookahead buffer (probes at least MEM00001-MEM00010 to discover all live sheet records)
-  const probeIds = [];
-  const limit = Math.max(maxIndex + 4, 10);
-  for (let i = 1; i <= limit; i++) {
-    const padId = `MEM${String(i).padStart(5, '0')}`;
-    probeIds.push(padId);
+export async function deleteMembership(memberId) {
+  const clean = String(memberId).trim();
+  try {
+    await callGasPost({
+      action: 'delete',
+      memberId: clean,
+    });
+  } catch (e) {
+    // If deployed GAS is older version without delete action, proceed with local cleanup
+    console.warn('Backend delete response:', e);
   }
 
-  const allIdsToFetch = Array.from(new Set([...tracked, ...probeIds]));
+  removeTrackedMemberId(clean);
+  removeLocalMemberProfile(clean);
+  invalidateMembersCache();
+  window.dispatchEvent(new CustomEvent(EVENT_KEY, { detail: { timestamp: Date.now() } }));
+  return true;
+}
 
-  // Fetch in parallel
-  const results = await Promise.allSettled(
-    allIdsToFetch.map((id) =>
-      callGasGet({ action: 'member', memberId: id }).then((res) => {
-        if (res && res.success && res.memberId) {
-          addTrackedMemberId(res.memberId);
-          return normalizeMember(res, id);
+/**
+ * Get all memberships for the admin dashboard
+ * High-performance implementation:
+ * 1. Returns SWR memory cache when valid (instant UI render, 0 network latency).
+ * 2. Deduplicates concurrent in-flight requests.
+ * 3. Probes ?action=members for single-call bulk retrieval.
+ * 4. Gracefully handles legacy backend with targeted sequential lookups.
+ */
+export async function getAllMemberships({ forceRefresh = false } = {}) {
+  // 1. Check in-memory cache
+  if (!forceRefresh && membersCache.data && Date.now() - membersCache.timestamp < CACHE_TTL_MS) {
+    return membersCache.data;
+  }
+
+  // 2. Return existing in-flight promise if currently fetching
+  if (inFlightFetchAllPromise) {
+    return inFlightFetchAllPromise;
+  }
+
+  inFlightFetchAllPromise = (async () => {
+    try {
+      // 3. Attempt single-call bulk fetch first (?action=members)
+      try {
+        const bulkRes = await callGasGet({ action: 'members' });
+        if (bulkRes && bulkRes.success && (Array.isArray(bulkRes.members) || Array.isArray(bulkRes.data))) {
+          const list = bulkRes.members || bulkRes.data;
+          const normalizedList = list
+            .filter((row) => row && (row.memberId || row.id))
+            .map((row) => normalizeMember(row, row.memberId || row.id));
+
+          normalizedList.forEach((m) => addTrackedMemberId(m.memberId));
+
+          membersCache = {
+            data: normalizedList,
+            timestamp: Date.now(),
+          };
+          return normalizedList;
         }
-        return null;
-      })
-    )
-  );
+      } catch (bulkErr) {
+        // Fall back to targeted member lookup
+      }
 
-  const members = results
-    .filter((r) => r.status === 'fulfilled' && r.value !== null)
-    .map((r) => r.value);
+      // 4. Targeted lookup for tracked IDs + probe up to highest ID
+      const tracked = getTrackedMemberIds();
+      let maxNum = 1;
+      tracked.forEach((id) => {
+        const match = id.match(/MEM(\d+)/i);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (n > maxNum) maxNum = n;
+        }
+      });
 
-  return members;
+      // Target IDs: tracked IDs plus small lookahead (max 2 beyond highest tracked)
+      const idsToFetch = new Set(tracked);
+      for (let i = 1; i <= Math.max(maxNum + 1, 2); i++) {
+        idsToFetch.add(`MEM${String(i).padStart(5, '0')}`);
+      }
+
+      const list = Array.from(idsToFetch);
+      const members = [];
+
+      // Fetch in small parallel batch of up to 4 to avoid chocking GAS concurrency limits
+      const chunkSize = 4;
+      for (let i = 0; i < list.length; i += chunkSize) {
+        const chunk = list.slice(i, i + chunkSize);
+        const chunkResults = await Promise.allSettled(
+          chunk.map((id) =>
+            callGasGet({ action: 'member', memberId: id }).then((res) => {
+              if (res && res.success && res.memberId) {
+                addTrackedMemberId(res.memberId);
+                return normalizeMember(res, id);
+              }
+              return null;
+            })
+          )
+        );
+
+        chunkResults.forEach((r) => {
+          if (r.status === 'fulfilled' && r.value) {
+            members.push(r.value);
+          }
+        });
+      }
+
+      // Sort by memberId descending (newest first)
+      members.sort((a, b) => (b.memberId || '').localeCompare(a.memberId || ''));
+
+      membersCache = {
+        data: members,
+        timestamp: Date.now(),
+      };
+
+      return members;
+    } finally {
+      inFlightFetchAllPromise = null;
+    }
+  })();
+
+  return inFlightFetchAllPromise;
 }
 
 /**

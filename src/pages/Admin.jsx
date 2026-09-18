@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import {
-  getAllMemberships,
-  approveMembership,
-  rejectMembership,
-  subscribeToMembershipUpdates,
-  getGoogleAppsScriptUrl,
-  setGoogleAppsScriptUrl,
-  testGoogleAppsScriptConnection,
-  isGoogleSheetConnected,
-} from '../services/membershipService';
 import AdminTable from '../components/AdminTable';
 import RequestCard from '../components/RequestCard';
 import Modal from '../components/Modal';
@@ -38,12 +28,24 @@ import {
   Link2,
   QrCode,
 } from 'lucide-react';
-import { logoutAdmin } from '../services/authService';
+import { logoutAdmin, isAdminAuthenticated } from '../services/authService';
+import {
+  getAllMemberships,
+  approveMembership,
+  rejectMembership,
+  deleteMembership,
+  subscribeToMembershipUpdates,
+  getGoogleAppsScriptUrl,
+  setGoogleAppsScriptUrl,
+  testGoogleAppsScriptConnection,
+  isGoogleSheetConnected,
+} from '../services/membershipService';
 
 export default function Admin() {
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorBanner, setErrorBanner] = useState('');
   const [processingId, setProcessingId] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,29 +58,30 @@ export default function Admin() {
 
   // Authentication check
   useEffect(() => {
-    const isAuth = localStorage.getItem('study_room_admin_auth');
-    if (!isAuth) {
+    if (!isAdminAuthenticated()) {
       navigate('/admin/login', { replace: true });
     }
   }, [navigate]);
 
-  const loadMembers = async () => {
+  const loadMembers = async (forceRefresh = false) => {
     try {
-      const data = await getAllMemberships();
+      setErrorBanner('');
+      const data = await getAllMemberships({ forceRefresh });
       setMembers(data);
     } catch (err) {
       console.error('Failed to load memberships:', err);
+      setErrorBanner('Unable to connect to the membership service. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadMembers();
+    loadMembers(false);
 
-    // Subscribe to updates (e.g. if a student submits a registration in another tab!)
+    // Subscribe to updates (cross-tab / storage updates)
     const unsubscribe = subscribeToMembershipUpdates(() => {
-      loadMembers();
+      loadMembers(false);
     });
 
     return () => {
@@ -97,11 +100,13 @@ export default function Admin() {
     setProcessingId(memberId);
     try {
       const updated = await approveMembership(memberId);
-      await loadMembers();
+      setMembers((prev) =>
+        prev.map((m) => (m.memberId === memberId ? { ...m, ...updated, status: 'APPROVED', cardStatus: 'READY' } : m))
+      );
       if (selectedMember && selectedMember.memberId === memberId) {
-        setSelectedMember(updated);
+        setSelectedMember({ ...selectedMember, ...updated, status: 'APPROVED', cardStatus: 'READY' });
       }
-      showToast(`Approved membership for ${updated.name} (${memberId})`);
+      showToast(`Approved membership for ${updated.name || memberId}`);
     } catch (err) {
       console.error('Approval failed:', err);
       showToast('Failed to approve membership.', 'error');
@@ -114,14 +119,34 @@ export default function Admin() {
     setProcessingId(memberId);
     try {
       const updated = await rejectMembership(memberId);
-      await loadMembers();
+      setMembers((prev) =>
+        prev.map((m) => (m.memberId === memberId ? { ...m, ...updated, status: 'REJECTED', cardStatus: 'NOT_READY' } : m))
+      );
       if (selectedMember && selectedMember.memberId === memberId) {
-        setSelectedMember(updated);
+        setSelectedMember({ ...selectedMember, ...updated, status: 'REJECTED', cardStatus: 'NOT_READY' });
       }
-      showToast(`Rejected membership for ${updated.name} (${memberId})`, 'info');
+      showToast(`Rejected membership for ${updated.name || memberId}`, 'info');
     } catch (err) {
       console.error('Rejection failed:', err);
       showToast('Failed to reject membership.', 'error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDelete = async (memberId) => {
+    if (!window.confirm(`Are you sure you want to remove member ${memberId}?`)) return;
+    setProcessingId(memberId);
+    try {
+      await deleteMembership(memberId);
+      setMembers((prev) => prev.filter((m) => m.memberId !== memberId));
+      if (selectedMember && selectedMember.memberId === memberId) {
+        setSelectedMember(null);
+      }
+      showToast(`Deleted member ${memberId}`, 'info');
+    } catch (err) {
+      console.error('Deletion failed:', err);
+      showToast('Failed to delete member.', 'error');
     } finally {
       setProcessingId(null);
     }
@@ -185,7 +210,7 @@ export default function Admin() {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
-            Study Room Admin
+            बालाजी लाइब्रेरी — Admin Portal
           </h1>
         </div>
 
@@ -195,7 +220,7 @@ export default function Admin() {
             size="sm"
             onClick={async () => {
               setLoading(true);
-              await loadMembers();
+              await loadMembers(true);
               showToast('Live Google Sheet records synced successfully!');
             }}
             icon={RefreshCw}
@@ -241,6 +266,21 @@ export default function Admin() {
           </Button>
         </div>
       </div>
+
+      {/* Global Error Banner */}
+      {errorBanner && (
+        <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold flex items-center justify-between animate-fadeIn">
+          <span>{errorBanner}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => loadMembers(true)}
+            icon={RefreshCw}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -570,6 +610,16 @@ export default function Admin() {
                   Re-Approve Membership
                 </Button>
               )}
+
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => handleDelete(selectedMember.memberId)}
+                disabled={processingId === selectedMember.memberId}
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+              >
+                Delete
+              </Button>
             </div>
           </div>
         )}

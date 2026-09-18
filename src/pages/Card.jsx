@@ -34,7 +34,7 @@ export default function Card() {
         }
       } catch (err) {
         console.error('Error fetching card:', err);
-        setError('Failed to load digital membership card.');
+        setError('Unable to connect to the membership service. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -179,28 +179,28 @@ export default function Card() {
           <MembershipCard ref={cardRef} member={member} />
         </div>
 
-        {/* Primary Actions */}
+        {/* Primary & Secondary Card Actions */}
         <div className="no-print flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
           <Button
             variant="primary"
             size="lg"
-            onClick={handleDownload}
-            isLoading={isDownloading}
-            loadingText="Generating PDF..."
-            icon={Download}
-            className="w-full sm:w-auto flex-1 font-bold shadow-md hover:shadow-lg"
+            onClick={handlePrint}
+            icon={Printer}
+            className="w-full sm:w-auto flex-1 font-bold shadow-md hover:shadow-lg text-base py-3.5"
           >
-            Download Card
+            PRINT CARD
           </Button>
 
           <Button
             variant="outline"
             size="lg"
-            onClick={handlePrint}
-            icon={Printer}
-            className="w-full sm:w-auto flex-1 font-semibold sm:hidden"
+            onClick={handleDownload}
+            isLoading={isDownloading}
+            loadingText="Generating PDF..."
+            icon={Download}
+            className="w-full sm:w-auto flex-1 font-bold border-2 border-slate-300 hover:border-slate-400 py-3.5"
           >
-            Print Card
+            DOWNLOAD PDF
           </Button>
         </div>
 

@@ -75,24 +75,56 @@ export default function ApplicationSubmitted() {
     }
   };
 
+  const isApproved = Boolean(
+    member && (member.status === 'APPROVED' || member.cardStatus === 'READY' || member.cardStatus === 'ACTIVE')
+  );
+
   useEffect(() => {
     fetchStatus();
 
-    // 1. Reactive subscription across tabs & events
+    // 1. Reactive subscription across tabs & storage events
     const unsubscribe = subscribeToMembershipUpdates(() => {
       fetchStatus();
     });
 
-    // 2. Periodic polling interval (every 2.5s) to guarantee automatic status refresh
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 2500);
+    // If approval is detected, stop polling immediately
+    if (isApproved) {
+      return () => {
+        unsubscribe();
+      };
+    }
+
+    // 2. Visibility-aware polling: 12 seconds when active tab, paused when hidden
+    const POLLING_INTERVAL_MS = 12000;
+    let timerId = null;
+
+    const startPolling = () => {
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          fetchStatus();
+        }
+      }, POLLING_INTERVAL_MS);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchStatus();
+        startPolling();
+      } else {
+        if (timerId) clearInterval(timerId);
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       unsubscribe();
-      clearInterval(interval);
+      if (timerId) clearInterval(timerId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [memberId, hasCelebrated]);
+  }, [memberId, hasCelebrated, isApproved]);
 
   const handleDownload = async () => {
     if (!cardRef.current || !member) return;
@@ -156,9 +188,9 @@ export default function ApplicationSubmitted() {
     );
   }
 
-  const isApproved = member.status === 'APPROVED' || member.cardStatus === 'READY' || member.cardStatus === 'ACTIVE';
-  const isPending = member.status === 'PENDING' && !isApproved;
-  const isRejected = member.status === 'REJECTED' && !isApproved;
+  const isApprovedState = member.status === 'APPROVED' || member.cardStatus === 'READY' || member.cardStatus === 'ACTIVE';
+  const isPending = member.status === 'PENDING' && !isApprovedState;
+  const isRejected = member.status === 'REJECTED' && !isApprovedState;
 
   return (
     <div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
@@ -243,7 +275,7 @@ export default function ApplicationSubmitted() {
         )}
 
         {/* ================= APPROVED STATE ================= */}
-        {isApproved && (
+        {isApprovedState && (
           <div className="bg-white rounded-3xl p-6 sm:p-9 border border-emerald-200 shadow-md animate-fadeIn">
             {/* Celebration Icon */}
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-5 shadow-2xs">
@@ -267,34 +299,34 @@ export default function ApplicationSubmitted() {
               <MembershipCard ref={cardRef} member={member} />
             </div>
 
-            {/* Action Buttons */}
+            {/* Primary & Secondary Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2.5 justify-center">
               <Button
                 variant="primary"
+                size="lg"
+                onClick={() => window.print()}
+                icon={Printer}
+                className="flex-1 shadow-md hover:shadow-lg font-bold text-base py-3"
+              >
+                PRINT CARD
+              </Button>
+              <Button
+                variant="outline"
                 size="lg"
                 onClick={handleDownload}
                 isLoading={isDownloading}
                 loadingText="Generating PDF..."
                 icon={Download}
-                className="flex-1 shadow-md hover:shadow-lg font-bold"
+                className="flex-1 font-bold border-2 border-slate-300 hover:border-slate-400 py-3"
               >
-                Download Card
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => window.print()}
-                icon={Printer}
-                className="font-semibold"
-              >
-                Print
+                DOWNLOAD PDF
               </Button>
               <Link to={`/card/${member.memberId}`} className="flex-1">
                 <Button
                   variant="secondary"
                   size="lg"
                   icon={ExternalLink}
-                  className="w-full font-semibold"
+                  className="w-full font-semibold py-3"
                 >
                   View Full Card
                 </Button>

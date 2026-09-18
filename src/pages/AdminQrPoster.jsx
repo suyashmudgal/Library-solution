@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const PRODUCTION_DOMAIN = 'https://balajilibrary.vercel.app';
-const QR_TARGET_URL = `${PRODUCTION_DOMAIN}/join`;
+const QR_TARGET_URL = `${PRODUCTION_DOMAIN}/register`;
 
 export default function AdminQrPoster() {
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -135,7 +135,7 @@ export default function AdminQrPoster() {
               onClick={handleCopyLink}
               icon={copied ? Check : Copy}
             >
-              {copied ? 'Link Copied!' : 'Copy /join Link'}
+              {copied ? 'Registration Link Copied!' : 'Copy /register Link'}
             </Button>
             <Button
               variant="outline"
@@ -229,6 +229,9 @@ export default function AdminQrPoster() {
             {/* Middle Section: QR Code & Direct Callouts */}
             <div className="p-8 bg-white space-y-6">
               <div>
+                <div className="inline-block px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-black uppercase tracking-wider mb-2">
+                  Scan to Register
+                </div>
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Scan to Get Membership Card
                 </h2>

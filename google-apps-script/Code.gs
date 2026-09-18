@@ -145,6 +145,15 @@ function doPost(e) {
       return jsonResponse({ success: true, message: 'Member rejected', memberId: memberId, data: updated });
     }
 
+    if (action === 'delete' || action === 'deletemember') {
+      const memberId = payload.memberId;
+      if (!memberId) {
+        return jsonResponse({ success: false, error: 'Missing memberId' }, 400);
+      }
+      const deleted = deleteMemberFromSheet(memberId);
+      return jsonResponse({ success: true, message: 'Member deleted', memberId: memberId });
+    }
+
     if (action === 'updatecardurl') {
       const memberId = payload.memberId;
       const cardFileUrl = payload.cardFileUrl || payload.cardUrl || '';
@@ -439,6 +448,28 @@ function updateCardFileUrl(memberId, url) {
   sheet.getRange(targetRow, 13).setValue(url);
   const updatedValues = sheet.getRange(targetRow, 1, 1, 15).getValues()[0];
   return mapRowToObject(updatedValues, targetRow - 1);
+}
+
+function deleteMemberFromSheet(memberId) {
+  const sheet = getSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) throw new Error('Sheet is empty');
+
+  const targetId = String(memberId).trim().toUpperCase();
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+
+  let targetRow = -1;
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]).trim().toUpperCase() === targetId) {
+      targetRow = i + 2;
+      break;
+    }
+  }
+
+  if (targetRow === -1) throw new Error('Member ID ' + memberId + ' not found');
+
+  sheet.deleteRow(targetRow);
+  return true;
 }
 
 // ============================================================================

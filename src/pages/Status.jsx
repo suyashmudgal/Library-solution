@@ -18,7 +18,7 @@ export default function Status() {
     e.preventDefault();
     const clean = query.trim();
     if (!clean) {
-      setError('Please enter your 10-digit mobile number or Member ID (e.g. SR-2026-00101)');
+      setError('Please enter your 10-digit mobile number or Member ID (e.g. MEM00001)');
       return;
     }
 
@@ -28,7 +28,7 @@ export default function Status() {
     try {
       // Look up by direct ID first or by mobile/ID search
       let found = [];
-      if (clean.toUpperCase().startsWith('SR-')) {
+      if (clean.toUpperCase().startsWith('MEM') || clean.toUpperCase().startsWith('SR-')) {
         const single = await getMembershipById(clean);
         if (single) found = [single];
       }
@@ -43,7 +43,7 @@ export default function Status() {
       }
     } catch (err) {
       console.error('Search error:', err);
-      setError('An error occurred while checking status. Please try again.');
+      setError('Unable to connect to the membership service. Please try again.');
     } finally {
       setIsSearching(false);
     }
@@ -74,7 +74,7 @@ export default function Status() {
             <Input
               label="Mobile Number or Member ID"
               name="query"
-              placeholder="e.g. 9826012345 or SR-2026-00101"
+              placeholder="e.g. 9806248236 or MEM00001"
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -82,7 +82,7 @@ export default function Status() {
               }}
               icon={Search}
               required
-              helperText="Tip: Try sample IDs: SR-2026-00101 (Pending), SR-2026-00088 (Approved), or your 10-digit mobile"
+              helperText="Enter your 10-digit mobile number or assigned Member ID"
             />
 
             <Button
@@ -228,7 +228,7 @@ export default function Status() {
 
         {/* Quick Help Footer */}
         <div className="mt-8 text-center text-xs text-slate-400">
-          Need help locating your card? Visit the study room reception desk or call +91 98260 12345.
+          Need help locating your card? Visit Balaji Library reception desk or call +91 9806248236 / 9630852930.
         </div>
       </div>
     </div>

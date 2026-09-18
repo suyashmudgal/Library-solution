@@ -8,19 +8,19 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="flex items-center gap-2 text-slate-900 font-semibold">
+            <div className="flex items-center gap-2 text-slate-900 font-bold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Sankalp Study Room & Library</span>
+              <span>बालाजी लाइब्रेरी (Balaji Library)</span>
             </div>
             <span className="hidden sm:inline text-slate-300">|</span>
             <div className="flex items-center gap-1.5 text-slate-500">
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              <span>Gwalior, M.P. - 474001</span>
+              <span>कंसाना टावर, प्री सैनिक स्कूल के पास, गुड़ी-गुड़ा का नाका</span>
             </div>
             <span className="hidden sm:inline text-slate-300">|</span>
             <div className="flex items-center gap-1.5 text-slate-500">
               <Phone className="w-3.5 h-3.5 text-slate-400" />
-              <span>+91 98260 12345</span>
+              <span>9806248236, 9630852930</span>
             </div>
           </div>
 
@@ -40,10 +40,10 @@ export default function Footer() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} Study Room Digital Card. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} बालाजी लाइब्रेरी (Balaji Library). All rights reserved.</p>
           <p className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-500" />
-            <span>Fast, eco-friendly digital membership portal</span>
+            <span>Fast, official digital membership system</span>
           </p>
         </div>
       </div>

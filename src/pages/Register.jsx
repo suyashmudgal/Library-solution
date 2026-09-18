@@ -19,7 +19,7 @@ export default function Register({ isFromQr = false }) {
       navigate(`/application-submitted?memberId=${created.memberId}`);
     } catch (err) {
       console.error('Registration failed:', err);
-      setErrorMessage('Failed to submit membership request. Please try again.');
+      setErrorMessage(err.message || 'Unable to connect to the membership service. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -62,7 +62,7 @@ export default function Register({ isFromQr = false }) {
         {/* Reassurance Notice */}
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Official Study Room Membership Portal • Verified by Desk Administrator</span>
+          <span>Official Balaji Library Membership Portal • Verified by Desk Administrator</span>
         </div>
       </div>
     </div>

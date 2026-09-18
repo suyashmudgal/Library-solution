@@ -48,6 +48,15 @@ Confirm your Google Sheet titled **`LIBRARY'S DATA`** has the following exact 15
 9. If prompted, click **Authorize access**, select your Google account, click **Advanced** > **Go to (unsafe)**, and **Allow**.
 10. Copy the generated **Web App URL** (starts with `https://script.google.com/macros/s/.../exec`).
 
+### 2b. Updating an Existing Deployment (Crucial for Changes)
+If you already deployed the Web App previously, saving `Code.gs` alone **does not** update the live endpoint. You must publish a new version:
+1. In the Apps Script editor, paste the updated `Code.gs` and click **Save** (Ctrl+S).
+2. Click **Deploy** > **Manage deployments**.
+3. Select your active deployment and click the **pencil icon (Edit)** in the top right.
+4. Under **Version**, click the dropdown and choose **New version**.
+5. Click **Deploy**.
+6. The Web App URL stays the same, and your live endpoint immediately runs the new code!
+
 ---
 
 ## 3. Connecting to the Web Application

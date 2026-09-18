@@ -241,7 +241,7 @@ export default function MembershipForm({ onSubmit, isSubmitting = false }) {
             label="Mobile Number"
             name="mobile"
             type="tel"
-            placeholder="9826012345"
+            placeholder="9806248236"
             value={formData.mobile}
             onChange={handleChange}
             onBlur={() => handleBlur('mobile')}

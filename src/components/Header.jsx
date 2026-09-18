@@ -28,11 +28,11 @@ export default function Header() {
               <BookOpen className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="text-left">
-              <span className="block font-bold text-slate-900 text-base leading-tight tracking-tight">
-                STUDY ROOM
+              <span className="block font-black text-slate-900 text-base leading-tight tracking-tight" style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
+                बालाजी लाइब्रेरी
               </span>
-              <span className="block text-[11px] font-medium text-emerald-600 uppercase tracking-wider">
-                Digital Membership
+              <span className="block text-[10px] font-extrabold text-orange-600 uppercase tracking-wider">
+                BALAJI LIBRARY
               </span>
             </div>
           </Link>
