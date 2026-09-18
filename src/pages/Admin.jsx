@@ -39,6 +39,7 @@ import {
   setGoogleAppsScriptUrl,
   getGoogleSheetUrl,
   setGoogleSheetUrl,
+  OFFICIAL_GOOGLE_SHEET_URL,
   testGoogleAppsScriptConnection,
   isGoogleSheetConnected,
 } from '../services/membershipService';
@@ -55,20 +56,13 @@ export default function Admin() {
   const [toastMessage, setToastMessage] = useState(null);
   const [isGasModalOpen, setIsGasModalOpen] = useState(false);
   const [gasUrlInput, setGasUrlInput] = useState(getGoogleAppsScriptUrl());
-  const [sheetUrlInput, setSheetUrlInput] = useState(getGoogleSheetUrl());
+  const [sheetUrlInput, setSheetUrlInput] = useState(getGoogleSheetUrl() || OFFICIAL_GOOGLE_SHEET_URL);
   const [isTestingGas, setIsTestingGas] = useState(false);
   const [gasTestStatus, setGasTestStatus] = useState(null);
 
   const handleOpenGoogleSheet = () => {
-    const url = getGoogleSheetUrl();
-    if (url && url.trim()) {
-      window.open(url.trim(), '_blank', 'noopener,noreferrer');
-    } else {
-      setGasUrlInput(getGoogleAppsScriptUrl());
-      setSheetUrlInput(getGoogleSheetUrl());
-      setIsGasModalOpen(true);
-      showToast('Please configure your Google Sheet URL below.', 'info');
-    }
+    const url = getGoogleSheetUrl() || OFFICIAL_GOOGLE_SHEET_URL;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // Authentication check
@@ -259,7 +253,7 @@ export default function Admin() {
             size="sm"
             onClick={() => {
               setGasUrlInput(getGoogleAppsScriptUrl());
-              setSheetUrlInput(getGoogleSheetUrl());
+              setSheetUrlInput(getGoogleSheetUrl() || OFFICIAL_GOOGLE_SHEET_URL);
               setGasTestStatus(null);
               setIsGasModalOpen(true);
             }}
@@ -751,11 +745,11 @@ export default function Admin() {
               <Input
                 label="Google Sheet URL (Spreadsheet)"
                 name="sheetUrl"
-                placeholder="https://docs.google.com/spreadsheets/d/.../edit"
+                placeholder={OFFICIAL_GOOGLE_SHEET_URL}
                 value={sheetUrlInput}
                 onChange={(e) => setSheetUrlInput(e.target.value)}
                 icon={Database}
-                helperText="URL opened when clicking '📊 Open Google Sheet' in the Admin panel"
+                helperText="Official Google Sheet opened by '📊 Open Google Sheet'"
               />
             </div>
 
@@ -783,7 +777,7 @@ export default function Admin() {
               size="md"
               onClick={async () => {
                 setGoogleAppsScriptUrl(gasUrlInput);
-                setGoogleSheetUrl(sheetUrlInput);
+                setGoogleSheetUrl(sheetUrlInput.trim() || OFFICIAL_GOOGLE_SHEET_URL);
                 await loadMembers();
                 setIsGasModalOpen(false);
                 showToast(

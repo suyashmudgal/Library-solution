@@ -42,12 +42,15 @@ export function isGoogleSheetConnected() {
   return true;
 }
 
+export const OFFICIAL_GOOGLE_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1KwPoKNU_qXJW2NZ3tALB25N2xurMSPBRCqWAirTXT1I/edit?gid=0#gid=0';
+
 const GOOGLE_SHEET_URL_STORAGE_KEY = 'cardmaker_google_sheet_url';
 
 export function getGoogleSheetUrl() {
   const custom = localStorage.getItem(GOOGLE_SHEET_URL_STORAGE_KEY);
   if (custom && custom.trim()) return custom.trim();
-  return (import.meta.env.VITE_GOOGLE_SHEET_URL || '').trim();
+  return (import.meta.env.VITE_GOOGLE_SHEET_URL || OFFICIAL_GOOGLE_SHEET_URL).trim();
 }
 
 export function setGoogleSheetUrl(url) {
