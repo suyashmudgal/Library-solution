@@ -17,7 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const PRODUCTION_DOMAIN = import.meta.env.VITE_APP_URL || 'https://cardmaker.vercel.app';
+const PRODUCTION_DOMAIN = import.meta.env.VITE_APP_URL || 'https://cardmakers.vercel.app';
 const QR_TARGET_URL = `${PRODUCTION_DOMAIN.replace(/\/$/, '')}/register`;
 
 export default function AdminQrPoster() {
