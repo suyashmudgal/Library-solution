@@ -64,7 +64,7 @@ const MembershipCard = forwardRef(function MembershipCard(
               {/* Title & Contacts */}
               <div className="text-left">
                 <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide leading-tight drop-shadow-sm">
-                  CardMaker
+                  Balaji Library
                 </h1>
 
                 {/* Contact numbers */}
