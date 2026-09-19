@@ -202,14 +202,14 @@ export default function MembershipForm({ onSubmit, isSubmitting = false }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 text-left" noValidate>
       {/* Student Personal Details */}
-      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/90 shadow-xs space-y-4.5">
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-7 border border-slate-200/90 dark:border-slate-700/80 shadow-xs space-y-4.5">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <User className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Student Information</h3>
-            <p className="text-xs text-slate-500">Official student identity details</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Information</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Official student identity details</p>
           </div>
         </div>
 
@@ -269,14 +269,14 @@ export default function MembershipForm({ onSubmit, isSubmitting = false }) {
       </div>
 
       {/* Membership & Payment Details */}
-      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/90 shadow-xs space-y-4.5">
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-7 border border-slate-200/90 dark:border-slate-700/80 shadow-xs space-y-4.5">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <CreditCard className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Membership &amp; Payment</h3>
-            <p className="text-xs text-slate-500">Plan selection and receipt confirmation</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Membership &amp; Payment</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Plan selection and receipt confirmation</p>
           </div>
         </div>
 
@@ -330,25 +330,25 @@ export default function MembershipForm({ onSubmit, isSubmitting = false }) {
         </div>
 
         {/* Automatic Valid Till Calculation Banner (Highlighting the core auto-calc feature) */}
-        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/60 border border-emerald-200/80 flex items-center justify-between gap-4">
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/60 dark:from-emerald-950/60 dark:via-teal-950/40 dark:to-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
                 Automatically Calculated Validity
               </span>
-              <span className="text-xs text-emerald-700">
+              <span className="text-xs text-emerald-700 dark:text-emerald-400">
                 Based on Joining Date + {formData.membershipPlan} plan
               </span>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-[10px] uppercase font-bold text-emerald-600 block">
+            <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">
               Valid Till
             </span>
-            <span className="text-base sm:text-lg font-extrabold text-emerald-900 tracking-tight">
+            <span className="text-base sm:text-lg font-extrabold text-emerald-900 dark:text-emerald-200 tracking-tight">
               {formatDate(calculatedValidTill, 'short')}
             </span>
           </div>
@@ -366,7 +366,7 @@ export default function MembershipForm({ onSubmit, isSubmitting = false }) {
         >
           {isSubmitting ? 'Submitting Request...' : 'Submit Membership Request'}
         </Button>
-        <p className="text-center text-xs text-slate-400 mt-2.5">
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-2.5">
           Your request will be routed instantly to the study room administrator for payment verification.
         </p>
       </div>

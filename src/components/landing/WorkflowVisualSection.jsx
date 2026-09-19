@@ -62,7 +62,7 @@ export default function WorkflowVisualSection() {
               return (
                 <div
                   key={idx}
-                  className="bg-white dark:bg-slate-850 rounded-2xl p-5 border border-slate-200/90 dark:border-slate-750 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col items-center text-center group hover:-translate-y-1"
+                  className="bg-white dark:bg-slate-800/80 rounded-2xl p-5 border border-slate-200/90 dark:border-slate-700/80 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col items-center text-center group hover:-translate-y-1"
                 >
                   {/* Badge */}
                   <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full mb-3">
