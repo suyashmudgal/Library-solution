@@ -24,13 +24,13 @@ export default function Button({
     secondary:
       'bg-slate-900 hover:bg-slate-800 text-white shadow-sm focus:ring-slate-900 border border-slate-900',
     outline:
-      'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-300 shadow-sm focus:ring-slate-400',
+      'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700 shadow-sm focus:ring-slate-400 dark:focus:ring-slate-600',
     danger:
       'bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/20 focus:ring-rose-500 border border-rose-600',
     dangerOutline:
-      'bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-rose-300 focus:ring-rose-400',
+      'bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 border border-rose-300 dark:border-rose-800 focus:ring-rose-400',
     ghost:
-      'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900 focus:ring-slate-300',
+      'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white focus:ring-slate-300',
     accent:
       'bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold shadow-sm focus:ring-amber-400 border border-amber-500',
   };
