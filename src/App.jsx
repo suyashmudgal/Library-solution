@@ -14,12 +14,14 @@ import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
 import AdminQrPoster from './pages/AdminQrPoster';
 import AdminAuthGuard from './components/AdminAuthGuard';
+import { ThemeProvider } from './context/ThemeContext';
 
 export default function App() {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
-        <Header />
+    <ThemeProvider>
+      <Router>
+        <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-100 dark:selection:bg-emerald-900 selection:text-emerald-900 dark:selection:text-emerald-100 transition-colors duration-200">
+          <Header />
         <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -54,5 +56,6 @@ export default function App() {
         <Footer />
       </div>
     </Router>
+  </ThemeProvider>
   );
 }
