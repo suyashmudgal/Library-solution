@@ -26,7 +26,7 @@ export default function CtaSection() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-          <Link to="/register" className="w-full sm:w-auto flex-1">
+          <Link to="/admin/login" className="w-full sm:w-auto flex-1">
             <Button
               variant="primary"
               size="lg"

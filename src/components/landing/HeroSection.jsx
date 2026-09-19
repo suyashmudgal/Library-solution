@@ -46,7 +46,7 @@ export default function HeroSection() {
 
             {/* Primary & Secondary CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mb-10 max-w-md">
-              <Link to="/register" className="flex-1">
+              <Link to="/admin/login" className="flex-1">
                 <Button
                   variant="primary"
                   size="lg"

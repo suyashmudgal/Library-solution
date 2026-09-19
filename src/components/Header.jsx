@@ -108,7 +108,7 @@ export default function Header() {
             <ThemeToggle />
 
             <div className="hidden sm:block">
-              <Link to="/register">
+              <Link to="/admin/login">
                 <Button
                   variant="primary"
                   size="sm"
@@ -195,7 +195,7 @@ export default function Header() {
           </Link>
 
           <div className="pt-2">
-            <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/admin/login" onClick={() => setMobileMenuOpen(false)}>
               <Button
                 variant="primary"
                 size="md"
